@@ -288,7 +288,6 @@
           <p class="lede mt-16">Share where you got stuck, meet a senior mentor, and practise the next question independently.</p>
           <div class="row mt-24">
             <button class="btn btn--primary" onclick="PP.go('#/request')">Find my mentor</button>
-            <button class="btn btn--ghost" onclick="PP.sample()">Try a sample problem</button>
           </div>
           <p class="hint mt-16">First customers: Grade 10–11 AP Microeconomics students at one school. This prototype uses local sample data.</p>
         </div>
@@ -671,8 +670,8 @@
             <div class="card card--flush" style="padding:16px">
               <div class="panel-title">Shared notes</div>
               <p class="mb-8"><strong>${esc(KEY_TAKEAWAYS[S.request.topic] || "The idea behind your question.")}</strong></p>
-              <p class="mb-8 muted">Alex reads your attempt first: you compared how much each country could produce,
-              rather than what each one gives up.</p>
+              <p class="mb-8 muted">${esc(m.name.split(" ")[0])} reads your attempt first, then rebuilds the step
+              where the reasoning slipped — instead of explaining the whole topic again.</p>
               <p class="mb-0 muted">The table is rebuilt with you: for each good, write what is given up per unit,
               then compare the same good in both countries.</p>
             </div>
