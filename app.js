@@ -184,15 +184,24 @@
       ["practice", "Independent practice"],
       ["summary", "Summary"],
     ];
-    const order = steps.map((s) => s[0]);
-    const ci = order.indexOf(current);
-    return `<ol class="spine">${steps.map(([id, label], i) => {
-      const state = i < ci ? "done" : i === ci ? "current" : "todo";
-      return `<li data-state="${state}">
-        <span class="n" aria-hidden="true">${i < ci ? "✓" : i + 1}</span>${esc(label)}
-        <span class="sr-only">${state === "done" ? "completed" : state === "current" ? "current step" : "not started"}</span>
-      </li>`;
-    }).join("")}</ol>`;
+    const found = steps.findIndex((s) => s[0] === current);
+    const at = found < 0 ? 0 : found;
+    return `
+    <nav class="spine-wrap" aria-label="Progress">
+      <p class="spine-compact">
+        <span class="spine-compact__n">Step ${at + 1} of ${steps.length}</span>
+        <span>${esc(steps[at][1])}</span>
+      </p>
+      <ol class="spine">
+        ${steps.map(([, label], i) => {
+          const st = i < at ? "done" : i === at ? "current" : "todo";
+          return `<li data-state="${st}">
+            <span class="n" aria-hidden="true">${i < at ? "\u2713" : i + 1}</span>${esc(label)}
+            <span class="sr-only">${st === "done" ? "completed" : st === "current" ? "current step" : "not started"}</span>
+          </li>`;
+        }).join("")}
+      </ol>
+    </nav>`;
   }
 
   function footer() {
@@ -231,29 +240,33 @@
   function heroArt() {
     return `
     <svg viewBox="0 0 420 300" width="100%" height="auto" role="img"
-         aria-label="Illustration: two students working through an economics question together at a desk.">
+         aria-label="Illustration: two students at a desk working through one question together, one pointing at a worked step and the other taking notes.">
       <rect width="420" height="300" fill="#FFFFFF"/>
-      <rect x="20" y="20" width="180" height="120" rx="8" fill="#EAF0F3" stroke="#DFE3E1"/>
-      <path d="M40 118 L92 74 L146 96 L182 52" fill="none" stroke="#203E4A" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M40 66 L96 96 L150 62 L182 88" fill="none" stroke="#BF8952" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="5 5"/>
-      <circle cx="92" cy="74" r="3.6" fill="#203E4A"/>
-      <circle cx="96" cy="96" r="3.6" fill="#BF8952"/>
-      <text x="36" y="44" font-family="Inter, sans-serif" font-size="11" fill="#5C6B70">PRICE</text>
-      <text x="176" y="140" text-anchor="end" font-family="Inter, sans-serif" font-size="11" fill="#5C6B70">QUANTITY</text>
 
-      <rect x="22" y="166" width="240" height="112" rx="8" fill="#F5EDE3" stroke="#E7D5BE"/>
-      <line x1="42" y1="200" x2="242" y2="200" stroke="#BF8952" stroke-width="1.4" opacity=".55"/>
-      <line x1="42" y1="232" x2="242" y2="232" stroke="#BF8952" stroke-width="1.4" opacity=".55"/>
-      <text x="42" y="192" font-family="Inter, sans-serif" font-size="11.5" fill="#6B4E2E">Country C: 4 ÷ 12 = 1/3 banana per apple</text>
-      <text x="42" y="224" font-family="Inter, sans-serif" font-size="11.5" fill="#6B4E2E">Country D: 8 ÷ 8 = 1 banana per apple</text>
-      <text x="42" y="262" font-family="Inter, sans-serif" font-size="11.5" font-weight="600" fill="#203E4A">Lower opportunity cost wins.</text>
+      <rect x="46" y="228" width="328" height="9" rx="4.5" fill="#203E4A" opacity=".14"/>
+      <ellipse cx="210" cy="252" rx="150" ry="9" fill="#EAF0F3"/>
 
-      <circle cx="320" cy="92" r="26" fill="#EAF0F3" stroke="#203E4A" stroke-width="1.4"/>
-      <path d="M292 176c0-20 12-34 28-34s28 14 28 34z" fill="#EAF0F3" stroke="#203E4A" stroke-width="1.4"/>
-      <circle cx="372" cy="118" r="22" fill="#F5EDE3" stroke="#203E4A" stroke-width="1.4"/>
-      <path d="M350 176c0-17 10-29 22-29s22 12 22 29z" fill="#F5EDE3" stroke="#203E4A" stroke-width="1.4"/>
-      <path d="M300 234h108" stroke="#DFE3E1" stroke-width="2" stroke-linecap="round"/>
-      <text x="354" y="266" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" fill="#5C6B70">one question, two people</text>
+      <rect x="152" y="164" width="118" height="62" rx="4" fill="#FFFFFF" stroke="#203E4A" stroke-width="1.6"/>
+      <line x1="164" y1="180" x2="256" y2="180" stroke="#203E4A" stroke-width="1.4" opacity=".3"/>
+      <line x1="164" y1="194" x2="240" y2="194" stroke="#203E4A" stroke-width="1.4" opacity=".3"/>
+      <line x1="164" y1="208" x2="250" y2="208" stroke="#203E4A" stroke-width="1.4" opacity=".3"/>
+      <ellipse cx="204" cy="194" rx="25" ry="9" fill="none" stroke="#BF8952" stroke-width="2"/>
+
+      <circle cx="96" cy="118" r="25" fill="#EAF0F3" stroke="#203E4A" stroke-width="1.6"/>
+      <path d="M60 226c0-31 16-54 36-54s36 23 36 54z" fill="#EAF0F3" stroke="#203E4A" stroke-width="1.6"/>
+      <path d="M128 186 L166 182" stroke="#203E4A" stroke-width="5.5" stroke-linecap="round"/>
+      <circle cx="168" cy="182" r="5" fill="#BF8952"/>
+
+      <circle cx="330" cy="134" r="23" fill="#F5EDE3" stroke="#203E4A" stroke-width="1.6"/>
+      <path d="M298 226c0-28 14-49 32-49s32 21 32 49z" fill="#F5EDE3" stroke="#203E4A" stroke-width="1.6"/>
+      <g transform="rotate(-7 352 206)">
+        <rect x="330" y="190" width="48" height="32" rx="3" fill="#FFFFFF" stroke="#203E4A" stroke-width="1.5"/>
+        <line x1="338" y1="200" x2="368" y2="199" stroke="#BF8952" stroke-width="1.7"/>
+        <line x1="338" y1="208" x2="364" y2="207" stroke="#203E4A" stroke-width="1.2" opacity=".28"/>
+        <line x1="338" y1="215" x2="360" y2="214" stroke="#203E4A" stroke-width="1.2" opacity=".28"/>
+      </g>
+
+      <rect x="266" y="222" width="46" height="6" rx="3" fill="#BF8952" transform="rotate(-6 289 225)"/>
     </svg>`;
   }
 
@@ -419,35 +432,29 @@
     const preferred = topic ? topic.mentor : null;
     const ordered = MENTORS.slice().sort((a, b) =>
       (a.id === preferred ? -1 : 0) - (b.id === preferred ? -1 : 0));
-    const stuck = r.stuck ? `<dt>Difficulty</dt><dd>${esc(r.stuck)}</dd>` : "";
 
     return `
     ${nav("find")}
     <main class="wrap">
       ${spine("matches")}
-      <div class="between">
-        <div>
-          <h1>Mentors for your learning gap</h1>
-          <p class="lede mt-8">Matched on the knowledge point in your question — not on who is simply available.</p>
-        </div>
+      <div class="page-head">
+        <h1>Mentors for your learning gap</h1>
         <button class="btn btn--quiet btn--sm" onclick="PP.go('#/request')">Edit my request</button>
       </div>
 
-      <div class="card card--tint mt-24">
-        <div class="panel-title">Your request</div>
-        <dl class="slist">
-          <div><dt>Subject</dt><dd>${esc(r.subject)}</dd></div>
-          <div><dt>Topic</dt><dd>${esc(topic ? topic.label : "—")}</dd></div>
-          ${stuck}
-          <div><dt>Preferred language</dt><dd>${esc(r.language || "Either")}</dd></div>
-        </dl>
+      <div class="reqbar">
+        <span><b>${esc(r.subject)}</b></span>
+        <span class="reqbar__sep" aria-hidden="true">·</span>
+        <span>${esc(topic ? topic.label : "—")}</span>
+        ${r.stuck ? `<span class="reqbar__sep" aria-hidden="true">·</span><span>${esc(r.stuck)}</span>` : ""}
+        <span class="reqbar__sep" aria-hidden="true">·</span>
+        <span>${esc(r.language || "Either")}</span>
       </div>
 
-      <div class="notice mt-24">
-        <span class="notice__icon" aria-hidden="true">◈</span>
-        <div><strong>Sample mentor profiles for demonstration.</strong> These are fictional profiles used to show
-        how matching would work. They are not screened, verified or rated.</div>
-      </div>
+      <p class="notice notice--slim">
+        <strong>Sample mentor profiles for demonstration.</strong> Fictional profiles showing how matching
+        would work — they are not screened, verified or rated.
+      </p>
 
       <div class="grid grid--3 mt-24">
         ${ordered.map((m, i) => {
@@ -459,20 +466,12 @@
               <span class="avatar">${avatarSVG(m.name, i)}</span>
               <div>
                 <div class="mentor__name">${esc(m.name)}</div>
-                <div class="mentor__role">${esc(m.role)}</div>
+                <div class="mentor__role">${esc(m.role)} · ${esc(m.languages)}</div>
               </div>
             </div>
             ${suggested ? `<div><span class="tag-suggested">Suggested for your topic</span></div>` : ""}
-            <dl class="mentor__rows">
-              <div><dt>Focus</dt><dd>${esc(m.focus)}</dd></div>
-              <div><dt>Style</dt><dd>${esc(m.style)}</dd></div>
-              <div><dt>Languages</dt><dd>${esc(m.languages)}</dd></div>
-            </dl>
             <p class="mentor__why mb-0">${esc(reason)}</p>
-            <dl class="mentor__rows">
-              <div><dt>Session</dt><dd>25-minute session</dd></div>
-              <div><dt>Price</dt><dd>Proposed pilot price: RMB 49</dd></div>
-            </dl>
+            <div class="mentor__facts">25-minute session · Proposed pilot price: RMB 49</div>
             <div class="mentor__foot">
               <button class="btn btn--quiet btn--sm" onclick="PP.profile('${m.id}', this)">View profile</button>
               <button class="btn btn--primary btn--sm" onclick="PP.choose('${m.id}')">Choose mentor</button>
@@ -489,8 +488,16 @@
     const m = mentorById(mentorId) || MENTORS[0];
     const r = S.request;
     const topic = topicById(r.topic);
-    const days = nextDays(7);
+    const days = nextDays(7)
+      .map((d) => Object.assign({}, d, { times: slotsFor(d) }))
+      .filter((d) => d.times.length > 0);
+
     const draft = S.draft || (S.draft = {});
+    if (!draft.iso || !days.some((d) => d.iso === draft.iso)) {
+      draft.iso = days.length ? days[0].iso : null;
+      draft.slot = null;
+    }
+    const active = days.filter((d) => d.iso === draft.iso)[0] || null;
     const goal = draft.goal || BOOKING_GOAL_DEFAULT;
 
     return `
@@ -498,38 +505,39 @@
     <main class="wrap">
       ${spine("booking")}
       <h1>Plan your focused session</h1>
-      <p class="lede mt-8">Choose a time that works. Nothing is charged and no real session is scheduled.</p>
+      <p class="lede mt-8">Pick a date, then a time. Nothing is charged and no real session is scheduled.</p>
 
       <div class="grid grid--split mt-24">
         <div class="stack">
           <section class="card">
             <div class="between">
-              <h3>Sample availability</h3>
-              <span class="muted" style="font-size:13.5px">China Standard Time (UTC+8)</span>
+              <h3>Pick a date</h3>
+              <span class="muted" style="font-size:13.5px">Sample availability · China Standard Time (UTC+8)</span>
             </div>
-            <p class="hint mb-16">Dates are generated from today. Times already passed are not offered.</p>
+            <div class="daygrid mt-16" role="group" aria-label="Choose a date">
+              ${days.map((d) => `
+                <button type="button" class="daybtn" data-iso="${d.iso}" aria-pressed="${d.iso === draft.iso}"
+                        onclick="PP.day('${d.iso}')">
+                  <span class="daybtn__dow">${d.isToday ? "Today" : esc(d.dow)}</span>
+                  <span class="daybtn__day">${d.day} ${esc(d.mon)}</span>
+                  <span class="daybtn__n">${d.times.length} times</span>
+                </button>`).join("")}
+            </div>
 
-            <div class="stack" id="dayList">
-              ${days.map((d) => {
-                const times = slotsFor(d);
-                if (!times.length) return "";
-                return `
-                <div>
-                  <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px">
-                    ${d.isToday ? "Today · " : ""}${fmtDate(d.iso)}
-                  </div>
-                  <div class="slotgrid" role="group" aria-label="Times on ${fmtDate(d.iso)}">
-                    ${times.map((t) => {
-                      const sel = draft.iso === d.iso && draft.slot === t;
-                      return `<button type="button" class="slot" data-iso="${d.iso}" data-slot="${t}"
-                        aria-pressed="${sel}" onclick="PP.slot('${d.iso}','${t}')">
-                        <span class="slot__dow">${d.dow} ${d.day} ${d.mon}</span>
-                        <span class="slot__time">${t}–${addMin(t, 25)}</span>
-                      </button>`;
-                    }).join("")}
-                  </div>
-                </div>`;
-              }).join("")}
+            <div class="mt-24">
+              <div class="between">
+                <h3 style="font-size:17px">Times on ${active ? esc(fmtDate(active.iso)) : "—"}</h3>
+                <span class="muted" style="font-size:13px">Times already passed are not offered</span>
+              </div>
+              <div class="slotgrid mt-16" role="group" aria-label="Available times">
+                ${active ? active.times.map((t) => {
+                  const sel = draft.iso === active.iso && draft.slot === t;
+                  return `<button type="button" class="slot" data-slot="${t}" aria-pressed="${sel}"
+                    onclick="PP.slot('${active.iso}','${t}')">
+                    <span class="slot__time">${t}–${addMin(t, 25)}</span>
+                  </button>`;
+                }).join("") : `<p class="muted mb-0">No times left today. Please choose another date.</p>`}
+              </div>
             </div>
           </section>
 
@@ -556,7 +564,7 @@
               <div><dt>Mentor</dt><dd>${esc(m.name)}</dd></div>
               <div><dt>Subject</dt><dd>${esc(r.subject)}</dd></div>
               <div><dt>Topic</dt><dd>${esc(topic ? topic.label : "—")}</dd></div>
-              <div><dt>Date and time</dt><dd id="sumWhen">${draft.iso ? fmtDate(draft.iso) + " · " + draft.slot : "Not selected yet"}</dd></div>
+              <div><dt>Date and time</dt><dd id="sumWhen">Not selected yet</dd></div>
               <div><dt>Duration</dt><dd>25 minutes</dd></div>
               <div><dt>Price</dt><dd>Proposed pilot price: RMB 49</dd></div>
             </dl>
@@ -567,8 +575,7 @@
                 oninput="PP.goal(this.value)">${esc(goal)}</textarea>
             </div>
 
-            <button class="btn btn--primary btn--wide" id="confirmBtn"
-              ${(!draft.iso || !draft.agreed) ? "disabled" : ""}
+            <button class="btn btn--primary btn--wide" id="confirmBtn" disabled
               onclick="PP.confirm()">Confirm demo booking</button>
             <p class="hint mb-0">No payment will be taken. No real session will be scheduled.</p>
           </section>
@@ -1080,9 +1087,9 @@
     const btn = $("#confirmBtn");
     if (!btn) return;
     const d = S.draft || {};
-    btn.disabled = !(d.iso && d.agreed);
+    btn.disabled = !(d.iso && d.slot && d.agreed);
     const when = $("#sumWhen");
-    if (when) when.textContent = d.iso ? (fmtDate(d.iso) + " · " + d.slot) : "Not selected yet";
+    if (when) when.textContent = (d.iso && d.slot) ? (fmtDate(d.iso) + " · " + d.slot) : "Not selected yet";
   }
 
   /* ---------------------------------------------------------
@@ -1152,15 +1159,22 @@
     },
 
     /* --- booking --- */
+    day(iso) {
+      const d = S.draft || (S.draft = {});
+      if (d.iso !== iso) d.slot = null;      // changing the date clears any chosen time
+      d.iso = iso;
+      save();
+      render();
+    },
     slot(iso, slot) {
       const d = S.draft || (S.draft = {});
       const same = d.iso === iso && d.slot === slot;
-      d.iso = same ? null : iso;
+      d.iso = iso;
       d.slot = same ? null : slot;
       save();
       $$(".slot").forEach((b) => {
         b.setAttribute("aria-pressed",
-          (!same && b.dataset.iso === iso && b.dataset.slot === slot) ? "true" : "false");
+          (!same && b.dataset.slot === slot) ? "true" : "false");
       });
       refreshConfirm();
     },
