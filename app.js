@@ -14,7 +14,9 @@
     request: null,
     bookings: [],          // {id, mentorId, dateISO, dateLabel, slot, goal, agreed, createdAt, stage}
     activeId: null,
-    attempt: null,         // {choiceId, correct}
+    attempts: [],          // [{choiceId, correct}] — at most two per booking
+    pending: null,         // option selected but not yet submitted
+    retrying: false,       // true while the second attempt is open
     feedback: null,        // {clarity, price, improve}
     sessionOpened: false,
     toast: "",
@@ -448,7 +450,7 @@
         <span>${esc(topic ? topic.label : "—")}</span>
         ${r.stuck ? `<span class="reqbar__sep" aria-hidden="true">·</span><span>${esc(r.stuck)}</span>` : ""}
         <span class="reqbar__sep" aria-hidden="true">·</span>
-        <span>${esc(r.language || "Either")}</span>
+        <span>Language: ${esc(r.language || "Either")}</span>
       </div>
 
       <p class="notice notice--slim">
@@ -695,8 +697,13 @@
   V.practice = (id) => {
     const b = bookingById(id);
     const q = PRACTICE[S.request.topic];
-    const a = S.attempt;
     const topic = topicById(S.request.topic);
+    const attempts = S.attempts || [];
+    const last = attempts.length ? attempts[attempts.length - 1] : null;
+    const remaining = Math.max(0, 2 - attempts.length);
+    const open = attempts.length === 0 || S.retrying;
+    const hint = !open ? "" : (S.pending ? "Ready when you are." : "Choose an answer first.");
+    const canRetry = !open && last && !last.correct && remaining > 0;
 
     return `
     ${nav("find")}
@@ -707,13 +714,16 @@
 
       <div class="grid grid--split mt-24">
         <section class="card">
-          <div class="panel-title">Question · ${esc(topic ? topic.label : "")}</div>
+          <div class="between mb-16">
+            <div class="panel-title" style="margin:0">Question · ${esc(topic ? topic.label : "")}</div>
+            <span class="muted" style="font-size:13px">Attempt ${Math.min(attempts.length + (open ? 1 : 0), 2)} of 2</span>
+          </div>
           <p class="qstem">${esc(q.stem)}</p>
           <div class="opts" id="optList" role="group" aria-label="Answer choices">
             ${q.options.map((o) => {
-              const selected = a && a.choiceId === o.id;
+              const selected = open && S.pending === o.id;
               return `<button type="button" class="opt" data-opt="${o.id}" aria-pressed="${selected}"
-                ${a ? "disabled" : ""} onclick="PP.pick('${o.id}')">
+                ${open ? "" : "disabled"} onclick="PP.pick('${o.id}')">
                 <span class="opt__l" aria-hidden="true">${o.id}</span>
                 <span>${esc(o.text)}</span>
               </button>`;
@@ -721,11 +731,21 @@
           </div>
 
           <div class="row mt-24">
-            <button class="btn btn--primary" id="checkBtn" ${a ? "disabled" : "disabled"} onclick="PP.check()">Check my answer</button>
-            <span class="hint" id="checkHint">Choose an answer first.</span>
+            <button class="btn btn--primary" id="checkBtn"
+              ${(open && S.pending) ? "" : "disabled"} onclick="PP.check()">Check my answer</button>
+            <span class="hint" id="checkHint" ${hint ? "" : "hidden"}>${esc(hint)}</span>
+            ${canRetry ? `<button class="btn btn--ghost" onclick="PP.retry()">Try again — one attempt left</button>` : ""}
           </div>
 
-          <div id="verdictBox" class="mt-24">${a ? verdictHTML(q, a) : ""}</div>
+          <div id="verdictBox" class="mt-24">${
+            (!open && last)
+              ? verdictHTML(q, last, attempts.length)
+              : (S.retrying
+                  ? `<div class="notice notice--calm"><span class="notice__icon" aria-hidden="true">\u21bb</span>
+                     <div><strong>Second attempt.</strong> Same question, no hints. Your first answer and the
+                     explanation are still in your summary.</div></div>`
+                  : "")
+          }</div>
         </section>
 
         <aside class="stack">
@@ -735,7 +755,7 @@
             unaided is the signal that the explanation landed — one attempt is not proof of learning.</p>
           </section>
 
-          <section class="card" id="fbCard" ${a ? "" : "hidden"}>
+          <section class="card" id="fbCard" ${last ? "" : "hidden"}>
             <div class="panel-title">Two quick questions</div>
             <div class="field">
               <span class="label" id="l-clarity">How clear was the explanation?</span>
@@ -746,7 +766,7 @@
               <div class="scale-labels"><span>Not clear</span><span>Very clear</span></div>
             </div>
             <div class="field">
-              <span class="label" id="l-price">Would you consider booking at ${money(49)}?</span>
+              <span class="label" id="l-price">Would you consider booking at RMB 49?</span>
               <div class="chips" role="group" aria-labelledby="l-price" id="priceChips">
                 ${["Yes","Maybe","No"].map((v) => `<button type="button" class="chip" data-price="${v}"
                   aria-pressed="${S.feedback && S.feedback.price === v}">${v}</button>`).join("")}
@@ -766,18 +786,18 @@
     ${footer()}`;
   };
 
-  function verdictHTML(q, a) {
-    const chosen = q.options.find((o) => o.id === a.choiceId);
-    const right = chosen && chosen.correct;
+  function verdictHTML(q, a, n) {
+    const chosen = q.options.filter((o) => o.id === a.choiceId)[0];
+    const right = !!(chosen && chosen.correct);
     return `
     <div class="verdict ${right ? "verdict--ok" : "verdict--no"}">
       <div class="row mb-8">
         <span class="status ${right ? "status--done" : "status--ready"}">
-          <span aria-hidden="true">${right ? "✓" : "!"}</span>${right ? "Correct" : "Not yet"}
+          <span aria-hidden="true">${right ? "\u2713" : "!"}</span>${right ? "Correct" : "Not yet"}
         </span>
-        <span class="muted" style="font-size:13.5px">attempt 1 of 2</span>
+        <span class="muted" style="font-size:13.5px">attempt ${n} of 2</span>
       </div>
-      <h3>${right ? "That is the right reasoning." : "Not quite — check which quantity you compared."}</h3>
+      <h3>${right ? "That is the right reasoning." : "Not quite — your reasoning is close, but one step went the wrong way."}</h3>
       <p class="mb-0">${esc(right ? q.correct : q.incorrect)}</p>
       <ul class="working">${q.working.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
       <p class="hint mb-0">This is one question, not a unit-level result, and it says nothing about an AP score.</p>
@@ -790,9 +810,14 @@
     const m = mentorById(b.mentorId);
     const q = PRACTICE[S.request.topic];
     const topic = topicById(S.request.topic);
-    const a = S.attempt;
-    const done = !!a;
-    const right = done && q.options.find((o) => o.id === a.choiceId).correct;
+    const attempts = S.attempts || [];
+    const last = attempts.length ? attempts[attempts.length - 1] : null;
+    const done = !!last;
+    const chosen = done ? q.options.filter((o) => o.id === last.choiceId)[0] : null;
+    const right = !!(chosen && chosen.correct);
+    const remaining = Math.max(0, 2 - attempts.length);
+    const canRetry = done && !right && remaining > 0;
+    const reviewLabel = canRetry ? "Review and retry" : "Review explanation";
 
     return `
     ${nav("learning")}
@@ -812,10 +837,12 @@
             <div><dt>Key takeaway</dt><dd>${esc(KEY_TAKEAWAYS[S.request.topic] || "—")}</dd></div>
             <div><dt>Practice response</dt><dd>
               ${done
-                ? `${esc(a.choiceId)} — ${esc(q.options.find((o) => o.id === a.choiceId).text)}
+                ? `${attempts.map((a, i) => `${esc(a.choiceId)}`).join(" then ")} —
+                   ${esc(chosen.text)}
                    <span class="status ${right ? "status--done" : "status--ready"}" style="margin-left:8px">
-                     <span aria-hidden="true">${right ? "✓" : "!"}</span>${right ? "Correct" : "Incorrect"}</span>`
-                : `<span class="status status--booked"><span aria-hidden="true">○</span>Not completed</span>`}
+                     <span aria-hidden="true">${right ? "\u2713" : "!"}</span>${right ? "Correct" : "Incorrect"}</span>
+                   ${attempts.length > 1 ? `<span class="muted" style="display:block;margin-top:4px;font-size:13.5px">Answered twice; the second attempt was recorded separately.</span>` : ""}`
+                : `<span class="status status--booked"><span aria-hidden="true">\u25cb</span>Not completed</span>`}
             </dd></div>
             <div><dt>Suggested next step</dt><dd>
               ${done ? esc(right ? q.nextIfRight : q.nextIfWrong) : "Complete the independent practice question to get a next step."}
@@ -824,20 +851,22 @@
         </section>
 
         <aside class="stack">
-          <section class="card card--tint">
-            <div class="panel-title">What this summary does not claim</div>
-            <p class="mb-0">It does not measure improvement, predict an AP score, or show a before-and-after gain.
-            One learner, one question. The pilot hypothesis — that a targeted explanation helps most learners solve
-            a similar question independently — is still untested.</p>
-          </section>
-
           <section class="card">
             <div class="panel-title">Continue</div>
             <div class="stack">
-              <button class="btn btn--primary btn--wide" onclick="PP.newTopic()">Find help with another topic</button>
+              ${done ? `<button class="btn btn--primary btn--wide" onclick="PP.review('${b.id}')">${reviewLabel}</button>` : ""}
+              <button class="btn ${done ? "btn--quiet" : "btn--primary"} btn--wide" onclick="PP.newTopic()">Find help with another topic</button>
               <button class="btn btn--quiet btn--wide" onclick="PP.go('#/')">Back to home</button>
               <button class="btn btn--quiet btn--wide" onclick="PP.reset()">Reset demo</button>
             </div>
+          </section>
+
+          <section class="card card--tint">
+            <div class="panel-title">What this summary does not claim</div>
+            <p class="mb-0">It does not measure improvement, predict an AP score, or show a before-and-after gain.
+            Re-reading an explanation and answering again is practice, not proof of independent mastery. The pilot
+            hypothesis — that a targeted explanation helps most learners solve a similar question independently
+            — is still untested.</p>
           </section>
         </aside>
       </div>
@@ -1029,7 +1058,7 @@
         attachName: S.request && S.request.attachName || "",
       };
       if (S.attachData) S.request.attachName = S.attachName || (S.request.attachName);
-      S.attempt = null; S.feedback = null;
+      S.attempts = []; S.pending = null; S.retrying = false; S.feedback = null;
       save();
       PP.go("#/matches");
     });
@@ -1071,16 +1100,16 @@
   }
 
   function wirePractice() {
-    const a = S.attempt;
-    if (a) {
-      const q = PRACTICE[S.request.topic];
-      const chosen = q.options.find((o) => o.id === a.choiceId);
-      $$(".opt").forEach((b) => {
-        if (b.dataset.opt === q.options.find((o) => o.correct).id) b.classList.add("is-correct");
-        if (b.dataset.opt === a.choiceId && !chosen.correct) b.classList.add("is-wrong");
-        b.disabled = true;
-      });
-    }
+    const attempts = S.attempts || [];
+    const last = attempts.length ? attempts[attempts.length - 1] : null;
+    if (!last || S.retrying) return;              // options are open, nothing to mark
+    const q = PRACTICE[S.request.topic];
+    const correctId = (q.options.filter((o) => o.correct)[0] || {}).id;
+    $$(".opt").forEach((b) => {
+      b.disabled = true;
+      if (b.dataset.opt === correctId) b.classList.add("is-correct");
+      if (b.dataset.opt === last.choiceId && last.choiceId !== correctId) b.classList.add("is-wrong");
+    });
   }
 
   function refreshConfirm() {
@@ -1212,24 +1241,42 @@
 
     /* --- practice --- */
     pick(id) {
-      if (S.attempt) return;
-      PP._choice = id;
+      const attempts = S.attempts || [];
+      if (attempts.length && !S.retrying) return;   // not open for answering
+      S.pending = id;
+      save();
       $$(".opt").forEach((b) => b.setAttribute("aria-pressed", b.dataset.opt === id ? "true" : "false"));
       const btn = $("#checkBtn"), hint = $("#checkHint");
       if (btn) btn.disabled = false;
-      if (hint) hint.textContent = "Ready when you are.";
+      if (hint) { hint.hidden = false; hint.textContent = "Ready when you are."; }
     },
     check() {
-      if (S.attempt || !PP._choice) return;
+      const attempts = S.attempts || [];
+      if (!S.pending) return;
+      if (attempts.length && !S.retrying) return;
       const q = PRACTICE[S.request.topic];
-      const chosen = q.options.find((o) => o.id === PP._choice);
-      S.attempt = { choiceId: PP._choice, correct: !!chosen.correct };
+      const chosen = q.options.filter((o) => o.id === S.pending)[0];
+      S.attempts = attempts.concat([{ choiceId: S.pending, correct: !!(chosen && chosen.correct) }]);
+      S.retrying = false;
       const b = bookingById(S.activeId);
       if (b) b.stage = "practised";
       save();
       render();
       const box = $("#verdictBox");
       if (box) box.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+    retry() {
+      S.retrying = true;
+      S.pending = null;
+      save();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    review(id) {
+      S.retrying = false;
+      S.pending = null;
+      save();
+      PP.go("#/practice/" + id);
     },
 
     /* --- feedback --- */
@@ -1251,7 +1298,8 @@
 
     /* --- summary --- */
     newTopic() {
-      S.request = null; S.attempt = null; S.feedback = null; S.draft = null;
+      S.request = null; S.attempts = []; S.pending = null; S.retrying = false;
+      S.feedback = null; S.draft = null;
       save();
       PP.go("#/request");
     },
