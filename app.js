@@ -213,7 +213,7 @@
         <div class="between">
           <div><strong style="color:var(--ink)">PeerPoint</strong> — Bring one problem. Practise the next one independently.</div>
           <div class="row" style="gap:16px">
-            <button class="nav__link" onclick="PP.go('#/')">About PeerPoint</button>
+            <button class="nav__link" onclick="PP.about()">About PeerPoint</button>
             <button class="nav__link" onclick="PP.demoInfo()">Demo information</button>
           </div>
         </div>
@@ -283,13 +283,16 @@
     <main class="wrap">
       <section class="hero">
         <div>
-          <div class="eyebrow">Focused support for AP Microeconomics</div>
-          <h1>Get help with the concept that&rsquo;s holding you back.</h1>
-          <p class="lede mt-16">Share where you got stuck, meet a senior mentor, and practise the next question independently.</p>
+          <div class="eyebrow">AP Microeconomics pilot concept</div>
+          <h1>Get focused AP help when you need someone to explain.</h1>
+          <p class="lede mt-16">Share your question and your attempt, find a suitable senior mentor, and practise a similar question independently.</p>
           <div class="row mt-24">
             <button class="btn btn--primary" onclick="PP.go('#/request')">Find my mentor</button>
           </div>
-          <p class="hint mt-16">First customers: Grade 10–11 AP Microeconomics students at one school. This prototype uses local sample data.</p>
+          <p class="hint mt-16">Proposed first customers: students <strong>outside our school</strong> who lack reliable,
+            personalised AP support. The initial pilot would focus on AP Microeconomics. This prototype uses local
+            sample data.</p>
+          <p class="hint">Paid pilot not launched. School permission and customer demand remain unconfirmed.</p>
         </div>
         <div class="hero__art">${heroArt()}</div>
       </section>
@@ -298,22 +301,27 @@
 
       <section id="how" class="section">
         <div class="eyebrow">How it works</div>
-        <h2>Three steps, one question at a time.</h2>
-        <div class="grid grid--3 mt-24">
-          <div class="card step3__item" style="border-bottom:0;padding:22px">
-            <div class="step3__n" aria-hidden="true">1</div>
-            <div><h3>Share your question</h3>
-            <p class="mb-0 muted">Upload the question and your attempt, and say where your reasoning stopped working.</p></div>
+        <h2>Four steps, one question at a time.</h2>
+        <div class="grid grid--4 mt-24">
+          <div class="howcard">
+            <div class="n" aria-hidden="true">1</div>
+            <h3>Share your question</h3>
+            <p class="mb-0 muted">Submit the question and your own attempt, and say where your reasoning stopped working.</p>
           </div>
-          <div class="card step3__item" style="border-bottom:0;padding:22px">
-            <div class="step3__n" aria-hidden="true">2</div>
-            <div><h3>Meet a topic-matched mentor</h3>
-            <p class="mb-0 muted">A senior student whose focus matches your knowledge point, for a 25-minute session.</p></div>
+          <div class="howcard">
+            <div class="n" aria-hidden="true">2</div>
+            <h3>Mentor reviews it</h3>
+            <p class="mb-0 muted">Before accepting a booking, a mentor would read your question and confirm they can help with it.</p>
           </div>
-          <div class="card step3__item" style="border-bottom:0;padding:22px">
-            <div class="step3__n" aria-hidden="true">3</div>
-            <div><h3>Check your understanding</h3>
-            <p class="mb-0 muted">A new question on your own, so understanding is not mistaken for being able to apply it.</p></div>
+          <div class="howcard">
+            <div class="n" aria-hidden="true">3</div>
+            <h3>25-minute session</h3>
+            <p class="mb-0 muted">Your reasoning first, then the misconception rebuilt with you.</p>
+          </div>
+          <div class="howcard">
+            <div class="n" aria-hidden="true">4</div>
+            <h3>Practise a similar question</h3>
+            <p class="mb-0 muted">A new question on your own, so understanding is not mistaken for being able to apply it.</p>
           </div>
         </div>
       </section>
@@ -348,7 +356,9 @@
       <div class="notice mt-24">
         <span class="notice__icon" aria-hidden="true">◈</span>
         <div><strong>Demo form.</strong> Nothing is uploaded. Your answers stay in this browser tab and are cleared by
-        <em>Reset demo</em>.</div>
+        <em>Reset demo</em>.
+        <p class="hint" style="margin-top:8px">In a live service, a mentor would review your question before
+        accepting a booking.</p></div>
       </div>
 
       <form id="reqForm" class="card mt-24" novalidate>
@@ -454,7 +464,8 @@
 
       <p class="notice notice--slim">
         <strong>Sample mentor profiles for demonstration.</strong> Fictional profiles showing how matching
-        would work — they are not screened, verified or rated.
+        would work — they are not screened, verified or rated. These suggestions use your selected topic;
+        <strong>no mentor has reviewed your submission.</strong>
       </p>
 
       <div class="grid grid--3 mt-24">
@@ -507,6 +518,8 @@
       ${spine("booking")}
       <h1>Plan your focused session</h1>
       <p class="lede mt-8">Pick a date, then a time. Nothing is charged and no real session is scheduled.</p>
+      <p class="notice notice--slim mt-16">This demo skips the mentor review step. In a live service, topic fit
+      would be confirmed before booking.</p>
 
       <div class="grid grid--split mt-24">
         <div class="stack">
@@ -996,6 +1009,38 @@
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   }
+  function openAbout() {
+    lastFocus = document.activeElement;
+    const existing = $("#modal"); if (existing) existing.remove();
+    const wrap = document.createElement("div");
+    wrap.className = "modal is-open";
+    wrap.id = "modal";
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("aria-labelledby", "aboutTitle");
+    wrap.innerHTML = `
+      <div class="modal__scrim" onclick="PP.closeProfile()"></div>
+      <div class="modal__box">
+        <button class="modal__close" aria-label="Close" onclick="PP.closeProfile()">Close</button>
+        <h2 id="aboutTitle" style="font-size:24px">About PeerPoint</h2>
+        <p class="mt-16">PeerPoint was revised after teacher feedback. The proposed paid service would serve
+        students <strong>outside our school</strong> who lack reliable individual support, rather than offer paid
+        tutoring to students at our school. Permission for this model and customer demand are still being explored.</p>
+        <p>The website demonstrates a proposed service. It is not evidence of customer demand or a completed
+        tutoring pilot.</p>
+        <div class="notice notice--calm mt-16">
+          <span class="notice__icon" aria-hidden="true">i</span>
+          <div>Demo subject: AP Microeconomics only. No payment is taken, no session is scheduled, and the sample
+          mentor profiles are fictional.</div>
+        </div>
+        <p class="hint">PeerPoint is an independent student project and is not affiliated with College Board.</p>
+        <div class="row mt-16"><button class="btn btn--quiet" onclick="PP.closeProfile()">Close</button></div>
+      </div>`;
+    document.body.appendChild(wrap);
+    $("#modal .modal__box").querySelector(".modal__close").focus();
+    document.addEventListener("keydown", modalKeys);
+  }
+
   function closeProfile() {
     const m = $("#modal");
     if (m) m.remove();
@@ -1140,7 +1185,9 @@
         "• No payment is taken and no real session is scheduled.\n" +
         "• Mentor profiles are fictional; nothing is marked verified.\n" +
         "• Your entries stay in this browser tab only.\n" +
-        "• Use “Reset demo” to clear everything and start again.");
+        "• Use “Reset demo” to clear everything and start again.\n" +
+        "• No paid pilot has launched. School permission and customer demand are unconfirmed.\n" +
+        "• The proposed service would serve students outside our school, not students at our school.");
     },
 
     /* --- request form --- */
@@ -1179,6 +1226,7 @@
     /* --- matches --- */
     profile(id, trigger) { openProfile(id, trigger); },
     closeProfile() { closeProfile(); },
+    about() { openAbout(); },
 
     choose(id) {
       S.draft = { mentorId: id, iso: null, slot: null, agreed: false, goal: BOOKING_GOAL_DEFAULT };
