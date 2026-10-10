@@ -7,8 +7,13 @@ Instructions for any coding agent (Codex, Claude Code, Cursor…) working on thi
 
 ## 1. What this project is
 
-A **clickable demonstration prototype** of PeerPoint, a peer-tutoring service concept for
-Grade 10–11 AP Microeconomics students. It is a school business-project deliverable.
+A **clickable demonstration prototype** of PeerPoint, a proposed per-question tutoring service.
+The proposed first customers are students **outside our school** who are preparing for AP subjects
+and lack reliable, personalised support — **not** students at our school. The demo supports
+**AP Microeconomics only**. It is a school business-project deliverable.
+
+**No paid pilot has launched.** School permission and customer demand remain unconfirmed, and this
+website is not evidence of either.
 
 It is a **static site with no build step, no dependencies, no backend and no network calls**
 at runtime. Four files, opened directly in a browser.
@@ -117,9 +122,19 @@ any copy, check it against this list.
 - ✅ The footer line: *PeerPoint is an independent student project and is not affiliated with College Board.*
 
 **Fixed facts that must stay consistent with the pitch deck:**
-first customers are Grade 10–11 AP Microeconomics students at one school · sessions are
-**25 minutes** · price is **RMB 49** (pilot assumption) · mentors are matched **by knowledge
-point** · every session ends with **independent practice**.
+proposed first customers are students **outside our school** who lack reliable individual AP support
+(not students at our school) · the demo covers **AP Microeconomics only** · sessions are **25 minutes**
+· price is **RMB 49** (pilot assumption) · suggestions are matched **by knowledge point**, with no real
+mentor review · in a live service a mentor would review the question **before** accepting a booking ·
+every session ends with **independent practice**.
+
+**Never imply any of these, anywhere in the UI or docs:**
+- ❌ that a mentor has reviewed, accepted, approved or been "verified" against a submission
+- ❌ "Review approved" · "Mentor accepted" · "Verified fit" · "AI diagnosis complete"
+- ❌ that the paid pilot has launched, that school permission exists, or that the site demonstrates
+     real customer demand
+- ❌ that the service is currently available to students at our school, or endorsed by any school
+- ❌ coverage of AP subjects beyond the Microeconomics demo
 
 ---
 
